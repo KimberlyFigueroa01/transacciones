@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banco UPTC · Cajero Java + COBOL</title>
+<style>
+  :root {
+    --azul: #1f3b73; --azul-claro: #e8eef9; --verde: #1e7d46; --rojo: #b3261e;
+    --ambar: #8a5a00; --ambar-claro: #fff4d6;
+    --gris: #6b7280; --borde: #d9dee7; --fondo: #f4f6fa;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--fondo); color: #1c1f26; }
+  header { background: var(--azul); color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header h1 { margin: 0; font-size: 1.2rem; }
+  header p { margin: 2px 0 0; font-size: .8rem; opacity: .8; }
+  .sesion-info { display: none; align-items: center; gap: 10px; font-size: .85rem; }
+  .sesion-info.visible { display: flex; }
+  .reloj { background: rgba(255,255,255,.15); padding: 4px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+  .reloj.alerta { background: #f6c344; color: #3b2a00; }
+  header button { background: rgba(255,255,255,.15); color: #fff; padding: 6px 12px; font-size: .85rem; }
+  main { max-width: 760px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
+  .oculto { display: none !important; }
+  .tarjeta { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 20px; }
+  .tarjeta h2 { margin: 0 0 12px; font-size: 1rem; color: var(--azul); }
+  label { font-size: .85rem; color: var(--gris); display: block; margin-bottom: 6px; }
+  input { width: 100%; padding: 10px 12px; font-size: 1rem; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }
+  form.fila { display: flex; gap: 8px; flex-wrap: wrap; }
+  form.fila input { flex: 1; min-width: 160px; width: auto; }
+  button { padding: 10px 16px; font-size: .95rem; border: 0; border-radius: 8px; cursor: pointer; background: var(--azul); color: #fff; }
+  button:disabled { opacity: .6; cursor: wait; }
+  .chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+  .chips button { background: var(--azul-claro); color: var(--azul); padding: 6px 12px; font-size: .85rem; }
+  .usuario-info { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .nombre { font-size: 1.1rem; font-weight: 600; }
+  .etiqueta { color: var(--gris); font-size: .85rem; }
+  .saldo { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
+  .contadores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
+  .contador { background: var(--fondo); border-radius: 8px; padding: 10px; text-align: center; }
+  .contador b { display: block; font-size: 1.3rem; }
+  .contador span { font-size: .78rem; color: var(--gris); }
+  .mensaje { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: .9rem; display: none; }
+  .mensaje.ok { display: block; background: #e6f4ec; color: var(--verde); }
+  .mensaje.error { display: block; background: #fbe9e7; color: var(--rojo); }
+  .mensaje.timeout { display: block; background: var(--ambar-claro); color: var(--ambar); }
+  .mensaje.info { display: block; background: var(--azul-claro); color: var(--azul); }
+  .procesando { margin-top: 12px; font-size: .85rem; color: var(--gris); display: none; }
+  .procesando.visible { display: block; }
+  .barra { height: 6px; background: var(--azul-claro); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+  .barra div { height: 100%; width: 0; background: var(--azul); transition: width .1s linear; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--borde); }
+  th { color: var(--gris); font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .chip { padding: 2px 8px; border-radius: 999px; font-size: .78rem; }
+  .chip.EXITOSA { background: #e6f4ec; color: var(--verde); }
+  .chip.RECHAZADA { background: #fbe9e7; color: var(--rojo); }
+  .chip.TIMEOUT { background: var(--ambar-claro); color: var(--ambar); }
+  .vacio { color: var(--gris); text-align: center; padding: 12px; }
+  details.pruebas { background: #fff; border: 1px dashed var(--borde); border-radius: 10px; padding: 12px 20px; }
+  details.pruebas summary { cursor: pointer; color: var(--gris); font-size: .9rem; }
+  .pruebas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .pruebas-grid .nota { grid-column: 1 / -1; font-size: .8rem; color: var(--gris); margin: 0; }
+  .fila-boton { display: flex; gap: 6px; }
+  .fila-boton button { padding: 8px 12px; font-size: .85rem; }
+  /* Aviso de inactividad */
+  .fondo-modal { position: fixed; inset: 0; background: rgba(20,25,40,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 360px; width: 100%; text-align: center; }
+  .modal h3 { margin: 0 0 8px; color: var(--azul); }
+  .modal .cuenta { font-size: 2.6rem; font-weight: 700; margin: 8px 0 16px; font-variant-numeric: tabular-nums; }
+  .modal .acciones { display: flex; gap: 8px; justify-content: center; }
+  .modal .secundario { background: var(--azul-claro); color: var(--azul); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Banco UPTC · Cajero</h1>
+    <p>Spring Boot · operaciones en COBOL (DLL vía JNA) · datos en banco.json</p>
+  </div>
+  <div class="sesion-info" id="sesionInfo">
+    <span class="reloj" id="reloj" title="Tiempo restante antes de cerrar la sesión por inactividad">Sesión 1:00</span>
+    <button id="btnSalir">Cerrar sesión</button>
+  </div>
+</header>
+
+<main>
+  <!-- ================= PANTALLA DE INGRESO ================= -->
+  <section id="pantallaIngreso" class="tarjeta">
+    <h2>Ingresar</h2>
+    <form class="fila" id="formIngreso">
+      <input type="tel" id="telefono" placeholder="Número de teléfono de la cuenta" required>
+      <button type="submit" id="btnIngresar">Ingresar</button>
+    </form>
+    <div class="etiqueta" style="margin-top:12px">Usuarios de prueba:</div>
+    <div class="chips" id="usuariosDemo"></div>
+    <div class="mensaje" id="mensajeIngreso"></div>
+  </section>
+
+  <!-- ================= PANTALLA DEL CAJERO ================= -->
+  <section id="pantallaCajero" class="oculto" style="display:grid; gap:16px">
+    <section class="tarjeta">
+      <div class="usuario-info">
+        <div>
+          <div class="nombre" id="nombre">—</div>
+          <div class="etiqueta" id="telefonoUsuario"></div>
+        </div>
+        <div>
+          <div class="etiqueta" style="text-align:right">Saldo actual</div>
+          <div class="saldo" id="saldo">—</div>
+        </div>
+      </div>
+      <div class="contadores">
+        <div class="contador"><b id="cntExitosas">0</b><span>Exitosas</span></div>
+        <div class="contador"><b id="cntRechazadas">0</b><span>Rechazadas</span></div>
+        <div class="contador"><b id="cntTimeouts">0</b><span>Timeouts</span></div>
+        <div class="contador"><b id="cntTotal">0</b><span>Movimientos</span></div>
+      </div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Retirar dinero</h2>
+      <form class="fila" id="formRetiro">
+        <input type="number" id="monto" min="0.01" step="0.01" placeholder="Monto a retirar" required>
+        <button type="submit" id="btnRetirar">Retirar</button>
+      </form>
+      <div class="chips" id="montosRapidos">
+        <button type="button" data-monto="50">$50</button>
+        <button type="button" data-monto="100">$100</button>
+        <button type="button" data-monto="300">$300</button>
+        <button type="button" data-monto="600">$600</button>
+      </div>
+      <div class="procesando" id="procesando">
+        <span id="textoProcesando">Procesando…</span>
+        <div class="barra"><div id="barraProgreso"></div></div>
+      </div>
+      <div class="mensaje" id="mensaje"></div>
+    </section>
+
+    <section class="tarjeta">
+      <h2>Historial</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th class="num">Monto</th><th class="num">Saldo</th></tr></thead>
+        <tbody id="historial"><tr><td colspan="5" class="vacio">Sin movimientos</td></tr></tbody>
+      </table>
+    </section>
+  </section>
+
+  <!-- ================= PANEL DE PRUEBAS ================= -->
+  <details class="pruebas" id="panelPruebas">
+    <summary>Panel de pruebas (timeouts)</summary>
+    <div class="pruebas-grid">
+      <div>
+        <label for="retardo">Retardo de la DLL COBOL (ms) · servidor</label>
+        <div class="fila-boton">
+          <input type="number" id="retardo" min="0" max="60000" step="500">
+          <button type="button" id="btnRetardo">Aplicar</button>
+        </div>
+      </div>
+      <div>
+        <label for="timeoutInterfaz">Timeout de la interfaz (ms) · navegador</label>
+        <div class="fila-boton">
+          <input type="number" id="timeoutInterfaz" min="500" step="500">
+          <button type="button" id="btnTimeoutInterfaz">Aplicar</button>
+        </div>
+      </div>
+      <p class="nota" id="notaConfig"></p>
+      <p class="nota">
+        Para ver el <b>timeout del servidor</b>: ponga un retardo mayor que el timeout del servidor (p. ej. 4000) y haga un retiro.<br>
+        Para ver el <b>timeout de la interfaz</b>: ponga un timeout de interfaz menor que el retardo (p. ej. retardo 2000, interfaz 1000).<br>
+        Vuelva el retardo a 0 al terminar.
+      </p>
+    </div>
+  </details>
+</main>
+
+<!-- Aviso de inactividad -->
+<div class="fondo-modal oculto" id="avisoInactividad">
+  <div class="modal" role="alertdialog" aria-labelledby="tituloAviso">
+    <h3 id="tituloAviso">¿Sigue ahí?</h3>
+    <div class="etiqueta">Su sesión se cerrará por inactividad en</div>
+    <div class="cuenta" id="cuentaRegresiva">10</div>
+    <div class="acciones">
+      <button id="btnContinuar">Continuar</button>
+      <button class="secundario" id="btnSalirAviso">Salir</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =====================================================================
+  // Estado y utilidades
+  // =====================================================================
+  const AVISO_MS = 10_000;          // el aviso aparece 10 s antes del cierre
+  const PING_CADA_MS = 5_000;       // cada cuánto se informa actividad al servidor
+  const MARGEN_INTERFAZ_MS = 2_000; // la interfaz espera un poco más que el servidor
+
+  const estado = {
+    config: { timeoutCobolMs: 3000, retardoCobolMs: 0, inactividadSegundos: 60 },
+    timeoutInterfazMs: null,  // si es null se calcula: timeout servidor + margen
+    token: null,
+    usuario: null,
+    ultimaActividad: 0,
+    ultimoPing: 0,
+    operando: false
+  };
+
+  const fmt = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", minimumFractionDigits: 2 });
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  const timeoutInterfaz = () => estado.timeoutInterfazMs ?? (estado.config.timeoutCobolMs + MARGEN_INTERFAZ_MS);
+
+  function mostrar(idElemento, texto, tipo) {
+    const m = $(idElemento);
+    m.textContent = texto;
+    m.className = "mensaje " + tipo;
+  }
+  const ocultar = idElemento => { $(idElemento).className = "mensaje"; };
+
+  function guardarSesionNavegador() {
+    try {
+      if (estado.token) sessionStorage.setItem("sesion", JSON.stringify({ token: estado.token, ultimaActividad: estado.ultimaActividad }));
+      else sessionStorage.removeItem("sesion");
+    } catch (e) { /* sin almacenamiento: la sesión solo dura mientras la página esté abierta */ }
+  }
+
+  // =====================================================================
+  // Peticiones con TIMEOUT DE INTERFAZ (AbortController)
+  // =====================================================================
+  class ErrorApi extends Error {
+    constructor(status, mensaje, esTimeoutInterfaz = false) {
+      super(mensaje);
+      this.status = status;
+      this.esTimeoutInterfaz = esTimeoutInterfaz;
+    }
+  }
+
+  async function api(ruta, { method = "GET", body = null, timeoutMs = timeoutInterfaz() } = {}) {
+    const controlador = new AbortController();
+    const temporizador = setTimeout(() => controlador.abort(), timeoutMs);
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (estado.token) headers["X-Sesion"] = estado.token;
+      const r = await fetch(ruta, {
+        method, headers, signal: controlador.signal,
+        body: body ? JSON.stringify(body) : undefined
+      });
+      let data = null;
+      if (r.status !== 204) { try { data = await r.json(); } catch (e) { /* sin cuerpo */ } }
+
+      if (r.status === 401 && estado.token) {
+        // El servidor dice que la sesión ya no es válida
+        cerrarSesionLocal(data?.error || "La sesión expiró", "timeout");
+      }
+      if (!r.ok) throw new ErrorApi(r.status, data?.error || `Error ${r.status}`);
+      return data;
+    } catch (e) {
+      if (e.name === "AbortError") {
+        throw new ErrorApi(0, `La interfaz canceló la petición: el servidor no respondió en ${timeoutMs} ms.`, true);
+      }
+      if (e instanceof ErrorApi) throw e;
+      throw new ErrorApi(0, "No se pudo conectar con el servidor");
+    } finally {
+      clearTimeout(temporizador);
+    }
+  }
+
+  // =====================================================================
+  // Configuración y panel de pruebas
+  // =====================================================================
+  async function cargarConfiguracion() {
+    try {
+      estado.config = await api("/api/configuracion");
+    } catch (e) { /* se usan los valores por defecto */ }
+    llenarCamposPanel();
+    pintarConfiguracion();
+  }
+
+  /** Llena los campos del panel (solo al cargar, para no pisar lo que se está escribiendo). */
+  function llenarCamposPanel() {
+    $("retardo").value = estado.config.retardoCobolMs;
+    $("timeoutInterfaz").value = timeoutInterfaz();
+  }
+
+  function pintarConfiguracion() {
+    const c = estado.config;
+    $("notaConfig").innerHTML =
+      `Timeout del servidor: <b>${c.timeoutCobolMs} ms</b> (application.properties) · ` +
+      `Retardo actual: <b>${c.retardoCobolMs} ms</b> · ` +
+      `Timeout de la interfaz: <b>${timeoutInterfaz()} ms</b> · ` +
+      `Cierre por inactividad: <b>${c.inactividadSegundos} s</b>`;
+  }
+
+  $("btnRetardo").addEventListener("click", async () => {
+    try {
+      estado.config = await api("/api/configuracion/retardo", {
+        method: "PUT", body: { retardoMs: Number($("retardo").value) || 0 }
+      });
+      $("retardo").value = estado.config.retardoCobolMs;
+      pintarConfiguracion();
+    } catch (e) {
+      alertaPanel(e.message);
+    }
+  });
+
+  $("btnTimeoutInterfaz").addEventListener("click", () => {
+    const valor = Number($("timeoutInterfaz").value);
+    estado.timeoutInterfazMs = valor >= 500 ? valor : null;
+    $("timeoutInterfaz").value = timeoutInterfaz();
+    pintarConfiguracion();
+  });
+
+  function alertaPanel(texto) {
+    $("notaConfig").textContent = texto;
+  }
+
+  // =====================================================================
+  // Ingreso y cierre de sesión
+  // =====================================================================
+  async function cargarUsuariosDemo() {
+    try {
+      const lista = await api("/api/sesion/usuarios-demo");
+      $("usuariosDemo").innerHTML = lista.map(u =>
+        `<button type="button" data-telefono="${esc(u.telefono)}">${esc(u.nombre)} ${esc(u.apellido)} · ${esc(u.telefono)}</button>`
+      ).join("");
+      $("usuariosDemo").querySelectorAll("button").forEach(b =>
+        b.addEventListener("click", () => { $("telefono").value = b.dataset.telefono; }));
+    } catch (e) {
+      mostrar("mensajeIngreso", e.message, "error");
+    }
+  }
+
+  $("formIngreso").addEventListener("submit", async e => {
+    e.preventDefault();
+    $("btnIngresar").disabled = true;
+    try {
+      const r = await api("/api/sesion", { method: "POST", body: { telefono: $("telefono").value } });
+      estado.token = r.token;
+      estado.config.inactividadSegundos = r.inactividadSegundos;
+      abrirCajero(r.usuario);
+    } catch (err) {
+      mostrar("mensajeIngreso", err.message, err.esTimeoutInterfaz ? "timeout" : "error");
+    } finally {
+      $("btnIngresar").disabled = false;
+    }
+  });
+
+  function abrirCajero(usuario) {
+    estado.ultimaActividad = Date.now();
+    estado.ultimoPing = Date.now();
+    guardarSesionNavegador();
+    ocultar("mensajeIngreso");
+    ocultar("mensaje");
+    $("pantallaIngreso").classList.add("oculto");
+    $("pantallaCajero").classList.remove("oculto");
+    $("sesionInfo").classList.add("visible");
+    $("telefono").value = "";
+    pintarUsuario(usuario);
+    pintarConfiguracion();
+  }
+
+  /** Cierra la sesión en la interfaz y avisa al servidor (si se puede). */
+  function cerrarSesionLocal(motivo, tipo = "info") {
+    const token = estado.token;
+    estado.token = null;
+    estado.usuario = null;
+    guardarSesionNavegador();
+    ocultarAviso();
+    $("pantallaCajero").classList.add("oculto");
+    $("sesionInfo").classList.remove("visible");
+    $("pantallaIngreso").classList.remove("oculto");
+    if (motivo) mostrar("mensajeIngreso", motivo, tipo);
+    if (token) {
+      // Se envía sin esperar respuesta; si falla, el servidor la expira solo
+      fetch("/api/sesion", { method: "DELETE", headers: { "X-Sesion": token } }).catch(() => {});
+    }
+  }
+
+  $("btnSalir").addEventListener("click", () => cerrarSesionLocal("Sesión cerrada", "info"));
+  $("btnSalirAviso").addEventListener("click", () => cerrarSesionLocal("Sesión cerrada", "info"));
+
+  // =====================================================================
+  // CIERRE DE SESIÓN POR INACTIVIDAD
+  // =====================================================================
+  const avisoVisible = () => !$("avisoInactividad").classList.contains("oculto");
+  function ocultarAviso() { $("avisoInactividad").classList.add("oculto"); }
+
+  /** Cualquier interacción del usuario renueva el tiempo de la sesión. */
+  function registrarActividad(forzar = false) {
+    if (!estado.token) return;
+    if (avisoVisible() && !forzar) return; // con el aviso abierto solo cuenta "Continuar"
+    estado.ultimaActividad = Date.now();
+    guardarSesionNavegador();
+    // Informar al servidor como mucho cada PING_CADA_MS
+    if (forzar || Date.now() - estado.ultimoPing > PING_CADA_MS) {
+      estado.ultimoPing = Date.now();
+      api("/api/sesion/ping", { method: "POST" }).catch(() => {});
+    }
+  }
+
+  ["click", "keydown", "mousemove", "touchstart", "scroll"].forEach(ev =>
+    document.addEventListener(ev, () => registrarActividad(), { passive: true }));
+
+  $("btnContinuar").addEventListener("click", () => {
+    ocultarAviso();
+    registrarActividad(true);
+  });
+
+  function formatoTiempo(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  }
+
+  // Revisión periódica del tiempo restante
+  setInterval(() => {
+    if (!estado.token) return;
+    const limite = estado.config.inactividadSegundos * 1000;
+    const restante = limite - (Date.now() - estado.ultimaActividad);
+
+    $("reloj").textContent = "Sesión " + formatoTiempo(restante);
+    $("reloj").classList.toggle("alerta", restante <= AVISO_MS);
+
+    if (restante <= 0) {
+      cerrarSesionLocal(`Sesión cerrada por inactividad (${estado.config.inactividadSegundos} s sin actividad).`, "timeout");
+    } else if (restante <= AVISO_MS) {
+      $("cuentaRegresiva").textContent = Math.ceil(restante / 1000);
+      $("avisoInactividad").classList.remove("oculto");
+    }
+  }, 250);
+
+  // =====================================================================
+  // Cuenta y retiro (con TIMEOUT DEL SERVIDOR)
+  // =====================================================================
+  function pintarUsuario(u) {
+    estado.usuario = u;
+    $("nombre").textContent = `${u.nombre} ${u.apellido}`;
+    $("telefonoUsuario").textContent = "Tel. " + (u.telefono ?? "");
+    $("saldo").textContent = fmt.format(u.saldo);
+
+    const historial = u.historial ?? [];
+    const contar = est => historial.filter(m => m.estado === est).length;
+    $("cntExitosas").textContent   = contar("EXITOSA");
+    $("cntRechazadas").textContent = contar("RECHAZADA");
+    $("cntTimeouts").textContent   = contar("TIMEOUT");
+    $("cntTotal").textContent      = historial.length;
+
+    const textoEstado = { EXITOSA: "Exitosa", RECHAZADA: "Rechazada", TIMEOUT: "Timeout" };
+    $("historial").innerHTML = historial.length === 0
+      ? '<tr><td colspan="5" class="vacio">Sin movimientos</td></tr>'
+      : [...historial].reverse().map(m => `
+          <tr>
+            <td>${new Date(m.fecha).toLocaleString("es-CO")}</td>
+            <td>${esc(m.tipo)}</td>
+            <td><span class="chip ${esc(m.estado)}">${esc(textoEstado[m.estado] ?? m.estado)}</span></td>
+            <td class="num">${fmt.format(m.monto)}</td>
+            <td class="num">${fmt.format(m.saldoResultante)}</td>
+          </tr>`).join("");
+  }
+
+  async function refrescarCuenta() {
+    try {
+      pintarUsuario(await api("/api/cuenta"));
+    } catch (e) { /* si la sesión expiró, api() ya volvió a la pantalla de ingreso */ }
+  }
+
+  /** Barra de progreso: muestra cuánto falta para el timeout de la interfaz. */
+  function iniciarProgreso() {
+    const inicio = Date.now();
+    const limite = timeoutInterfaz();
+    $("procesando").classList.add("visible");
+    const intervalo = setInterval(() => {
+      const transcurrido = Date.now() - inicio;
+      $("textoProcesando").textContent =
+        `Procesando en COBOL… ${(transcurrido / 1000).toFixed(1)} s (la interfaz espera hasta ${(limite / 1000).toFixed(1)} s)`;
+      $("barraProgreso").style.width = Math.min(100, transcurrido / limite * 100) + "%";
+    }, 100);
+    return () => {
+      clearInterval(intervalo);
+      $("procesando").classList.remove("visible");
+      $("barraProgreso").style.width = "0";
+    };
+  }
+
+  function bloquearOperaciones(bloquear) {
+    estado.operando = bloquear;
+    $("btnRetirar").disabled = bloquear;
+    $("montosRapidos").querySelectorAll("button").forEach(b => b.disabled = bloquear);
+  }
+
+  async function retirar(monto) {
+    if (!estado.token || estado.operando) return;
+    ocultar("mensaje");
+    bloquearOperaciones(true);
+    const detenerProgreso = iniciarProgreso();
+    try {
+      const usuario = await api("/api/cuenta/retirar", { method: "POST", body: { monto } });
+      pintarUsuario(usuario);
+      const ultimo = usuario.historial[usuario.historial.length - 1];
+      if (ultimo && ultimo.estado === "EXITOSA") {
+        mostrar("mensaje", `Retiro exitoso de ${fmt.format(monto)}`, "ok");
+        $("monto").value = "";
+      } else {
+        mostrar("mensaje", `Retiro de ${fmt.format(monto)} rechazado: fondos insuficientes`, "error");
+      }
+    } catch (e) {
+      if (e.status === 504) {
+        // Timeout del servidor: el COBOL no respondió a tiempo
+        mostrar("mensaje", "⏱ TIMEOUT DEL SERVIDOR. " + e.message, "timeout");
+        await refrescarCuenta(); // el intento quedó registrado en el historial
+      } else if (e.esTimeoutInterfaz) {
+        // Timeout de la interfaz: el navegador dejó de esperar
+        const texto = "⏱ TIMEOUT DE LA INTERFAZ. " + e.message;
+        mostrar("mensaje", texto + " Verificando en el servidor el estado de la cuenta…", "timeout");
+        // El servidor sigue procesando: se espera a que pase SU timeout
+        // (para entonces terminó o canceló) y luego se consulta la cuenta.
+        const espera = Math.max(0, estado.config.timeoutCobolMs + 500 - timeoutInterfaz());
+        await new Promise(listo => setTimeout(listo, espera));
+        const saldoAntes = estado.usuario?.saldo;
+        await refrescarCuenta();
+        const ultimo = estado.usuario?.historial?.at(-1);
+        mostrar("mensaje", texto + (ultimo && estado.usuario.saldo !== saldoAntes
+            ? ` El servidor sí completó la operación (estado: ${ultimo.estado}). Saldo actualizado.`
+            : ` Resultado en el servidor: ${ultimo ? ultimo.estado : "sin cambios"}.`), "timeout");
+      } else if (e.status !== 401) {
+        mostrar("mensaje", e.message, "error");
+      }
+    } finally {
+      detenerProgreso();
+      bloquearOperaciones(false);
+    }
+  }
+
+  $("formRetiro").addEventListener("submit", e => {
+    e.preventDefault();
+    retirar(parseFloat($("monto").value));
+  });
+  $("montosRapidos").querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", () => retirar(parseFloat(b.dataset.monto))));
+
+  // =====================================================================
+  // Arranque
+  // =====================================================================
+  (async function iniciar() {
+    await cargarConfiguracion();
+    await cargarUsuariosDemo();
+
+    // Si se recargó la página con una sesión abierta, se intenta recuperar
+    let guardada = null;
+    try { guardada = JSON.parse(sessionStorage.getItem("sesion")); } catch (e) {}
+    if (guardada?.token) {
+      const limite = estado.config.inactividadSegundos * 1000;
+      if (Date.now() - guardada.ultimaActividad < limite) {
+        estado.token = guardada.token;
+        try {
+          const usuario = await api("/api/cuenta");
+          abrirCajero(usuario);
+          return;
+        } catch (e) { estado.token = null; }
+      }
+      guardarSesionNavegador();
+      mostrar("mensajeIngreso", "La sesión anterior expiró. Ingrese de nuevo.", "timeout");
+    }
+  })();
+</script>
+</body>
+</html>

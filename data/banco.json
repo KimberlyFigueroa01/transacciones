@@ -1,0 +1,54 @@
+{
+  "usuarios" : [ {
+    "id" : 1,
+    "nombre" : "Ana",
+    "apellido" : "Gómez",
+    "telefono" : "3001112233",
+    "saldo" : 300.0,
+    "historial" : [ {
+      "fecha" : "2026-11-15T23:26:59.986Z",
+      "tipo" : "RETIRO",
+      "monto" : 600.0,
+      "estado" : "EXITOSA",
+      "saldoResultante" : 400.0
+    }, {
+      "fecha" : "2026-11-15T23:42:22.176Z",
+      "tipo" : "RETIRO",
+      "monto" : 100.0,
+      "estado" : "EXITOSA",
+      "saldoResultante" : 300.0
+    } ]
+  }, {
+    "id" : 2,
+    "nombre" : "Luis",
+    "apellido" : "Pérez",
+    "telefono" : "3104445566",
+    "saldo" : 150.0,
+    "historial" : [ {
+      "fecha" : "2026-11-15T23:26:49.356Z",
+      "tipo" : "RETIRO",
+      "monto" : 300.0,
+      "estado" : "EXITOSA",
+      "saldoResultante" : 200.0
+    }, {
+      "fecha" : "2026-11-15T23:42:06.799Z",
+      "tipo" : "RETIRO",
+      "monto" : 600.0,
+      "estado" : "RECHAZADA",
+      "saldoResultante" : 200.0
+    }, {
+      "fecha" : "2026-11-15T23:42:10.011Z",
+      "tipo" : "RETIRO",
+      "monto" : 50.0,
+      "estado" : "EXITOSA",
+      "saldoResultante" : 150.0
+    } ]
+  }, {
+    "id" : 3,
+    "nombre" : "María",
+    "apellido" : "Rojas",
+    "telefono" : "3207778899",
+    "saldo" : 1500.0,
+    "historial" : [ ]
+  } ]
+}

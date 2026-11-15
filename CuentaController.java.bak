@@ -1,0 +1,61 @@
+package uptc.banco.transacciones.Controller;
+
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import uptc.banco.transacciones.Service.CuentaService;
+import uptc.banco.transacciones.Service.CuentaService.Movimiento;
+
+/**
+ * API REST consumida por la interfaz web (static/index.html).
+ *   GET  /api/cuenta/saldo      → saldo actual
+ *   GET  /api/cuenta/historial  → lista de movimientos
+ *   POST /api/cuenta/retirar    → body {"monto": 250.0}
+ *   POST /api/cuenta/reiniciar  → saldo vuelve a 1000
+ */
+@RestController
+@RequestMapping("/api/cuenta")
+public class CuentaController {
+
+    public record RetiroRequest(double monto) {}
+
+    private final CuentaService cuentaService;
+
+    public CuentaController(CuentaService cuentaService) {
+        this.cuentaService = cuentaService;
+    }
+
+    @GetMapping("/saldo")
+    public Map<String, Double> saldo() {
+        return Map.of("saldo", cuentaService.getSaldo());
+    }
+
+    @GetMapping("/historial")
+    public List<Movimiento> historial() {
+        return cuentaService.getHistorial();
+    }
+
+    @PostMapping("/retirar")
+    public Movimiento retirar(@RequestBody RetiroRequest request) {
+        return cuentaService.retirar(request.monto());
+    }
+
+    @PostMapping("/reiniciar")
+    public Map<String, Double> reiniciar() {
+        cuentaService.reiniciar();
+        return Map.of("saldo", cuentaService.getSaldo());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> montoInvalido(IllegalArgumentException e) {
+        return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+    }
+}
