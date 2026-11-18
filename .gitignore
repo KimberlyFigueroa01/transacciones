@@ -33,3 +33,7 @@ build/
 .vscode/
 
 /Abrir bloc de notas.onetoc2
+
+### Respaldos / temporales ###
+*.bak
+*.tgz

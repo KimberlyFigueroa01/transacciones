@@ -1,5 +1,9 @@
 package uptc.banco.transacciones;
 
+import java.io.File;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -9,8 +13,32 @@ import uptc.banco.transacciones.Service.LibCob;
 public class TransaccionesApplication {
 
     static {
-        // Dónde busca JNA libcob-4.dll (MSYS2) y transaccion.dll (carpeta actual o superior)
-        System.setProperty("jna.library.path", "C:/msys64/ucrt64/bin;.;..");
+        System.setProperty("jna.library.path", rutasLibrerias());
+    }
+
+    /**
+     * Carpetas donde JNA busca libcob-4.dll (runtime de GnuCOBOL) y transaccion.dll.
+     * Orden:
+     *  1. Variable de entorno GNUCOBOL_BIN (opcional, para usar otra instalación).
+     *  2. Carpeta "native" del proyecto (incluida en el repositorio: funciona al clonar).
+     *  3. Instalación típica de MSYS2 (C:/msys64/ucrt64/bin).
+     *  4. Carpeta actual y superior (compatibilidad con la versión anterior).
+     */
+    private static String rutasLibrerias() {
+        Set<String> rutas = new LinkedHashSet<>();
+        String gnucobol = System.getenv("GNUCOBOL_BIN");
+        if (gnucobol != null && !gnucobol.isBlank()) {
+            rutas.add(gnucobol);
+        }
+        rutas.add(new File("native").getAbsolutePath());
+        rutas.add("C:/msys64/ucrt64/bin");
+        rutas.add(".");
+        rutas.add("..");
+        String previa = System.getProperty("jna.library.path");
+        if (previa != null && !previa.isBlank()) {
+            rutas.add(previa);
+        }
+        return String.join(File.pathSeparator, rutas);
     }
 
     public static void main(String[] args) {

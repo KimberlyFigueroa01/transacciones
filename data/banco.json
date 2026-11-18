@@ -17,6 +17,12 @@
       "monto" : 100.0,
       "estado" : "EXITOSA",
       "saldoResultante" : 300.0
+    }, {
+      "fecha" : "2026-11-18T23:14:43.133Z",
+      "tipo" : "RETIRO",
+      "monto" : 600.0,
+      "estado" : "RECHAZADA",
+      "saldoResultante" : 300.0
     } ]
   }, {
     "id" : 2,
