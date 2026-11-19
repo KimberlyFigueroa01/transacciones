@@ -58,6 +58,17 @@
   .chip.RECHAZADA { background: #fbe9e7; color: var(--rojo); }
   .chip.TIMEOUT { background: var(--ambar-claro); color: var(--ambar); }
   .vacio { color: var(--gris); text-align: center; padding: 12px; }
+  td.detalle { color: var(--gris); font-size: .8rem; }
+  /* Pestañas de operaciones */
+  .pestanas { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--borde); }
+  .pestanas button { background: none; color: var(--gris); border-radius: 8px 8px 0 0; padding: 8px 12px; font-size: .88rem; border-bottom: 3px solid transparent; }
+  .pestanas button.activa { color: var(--azul); border-bottom-color: var(--azul); font-weight: 600; }
+  .operacion { display: none; }
+  .operacion.activa { display: block; }
+  .operacion .ayuda { font-size: .8rem; color: var(--gris); margin: 0 0 10px; }
+  .operacion .cobol { font-family: Consolas, monospace; background: var(--azul-claro); color: var(--azul); padding: 1px 6px; border-radius: 4px; }
+  select { padding: 10px 12px; font-size: 1rem; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }
+  .scroll-tabla { overflow-x: auto; }
   details.pruebas { background: #fff; border: 1px dashed var(--borde); border-radius: 10px; padding: 12px 20px; }
   details.pruebas summary { cursor: pointer; color: var(--gris); font-size: .9rem; }
   .pruebas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
@@ -119,18 +130,82 @@
       </div>
     </section>
 
-    <section class="tarjeta">
-      <h2>Retirar dinero</h2>
-      <form class="fila" id="formRetiro">
-        <input type="number" id="monto" min="0.01" step="0.01" placeholder="Monto a retirar" required>
-        <button type="submit" id="btnRetirar">Retirar</button>
-      </form>
-      <div class="chips" id="montosRapidos">
-        <button type="button" data-monto="50">$50</button>
-        <button type="button" data-monto="100">$100</button>
-        <button type="button" data-monto="300">$300</button>
-        <button type="button" data-monto="600">$600</button>
+    <section class="tarjeta" id="tarjetaOperaciones">
+      <h2>Operaciones</h2>
+      <div class="pestanas" id="pestanas">
+        <button type="button" data-op="retiro" class="activa">Retirar</button>
+        <button type="button" data-op="consignacion">Consignar</button>
+        <button type="button" data-op="transferencia">Transferir</button>
+        <button type="button" data-op="servicio">Pagar servicio</button>
+        <button type="button" data-op="recarga">Recargar celular</button>
       </div>
+
+      <!-- 1. RETIRAR -->
+      <div class="operacion activa" data-op="retiro">
+        <p class="ayuda">Programa COBOL <span class="cobol">RETIRAR-DINERO</span> · rechaza si el saldo no alcanza.</p>
+        <form class="fila" id="formRetiro">
+          <input type="number" id="monto" step="0.01" placeholder="Monto a retirar" required>
+          <button type="submit">Retirar</button>
+        </form>
+        <div class="chips" id="montosRapidos">
+          <button type="button" data-monto="50">$50</button>
+          <button type="button" data-monto="100">$100</button>
+          <button type="button" data-monto="300">$300</button>
+          <button type="button" data-monto="600">$600</button>
+        </div>
+      </div>
+
+      <!-- 2. CONSIGNAR -->
+      <div class="operacion" data-op="consignacion">
+        <p class="ayuda">Programa COBOL <span class="cobol">CONSIGNAR-DINERO</span> · tope de $10.000 por consignación.</p>
+        <form class="fila" id="formConsignar">
+          <input type="number" id="montoConsignar" step="0.01" placeholder="Monto a consignar" required>
+          <button type="submit">Consignar</button>
+        </form>
+      </div>
+
+      <!-- 3. TRANSFERIR -->
+      <div class="operacion" data-op="transferencia">
+        <p class="ayuda">Programa COBOL <span class="cobol">TRANSFERIR-DINERO</span> · descuenta de su cuenta y abona al destino en un solo cálculo.</p>
+        <form class="fila" id="formTransferir">
+          <input type="tel" id="telefonoDestino" list="listaDestinos" placeholder="Teléfono destino" required>
+          <datalist id="listaDestinos"></datalist>
+          <input type="number" id="montoTransferir" step="0.01" placeholder="Monto" required>
+          <button type="submit">Transferir</button>
+        </form>
+      </div>
+
+      <!-- 4. PAGAR SERVICIO -->
+      <div class="operacion" data-op="servicio">
+        <p class="ayuda">Programa COBOL <span class="cobol">PAGAR-SERVICIO</span> · cobra el valor de la factura + comisión fija de $2.</p>
+        <form class="fila" id="formServicio">
+          <select id="servicio" required>
+            <option value="AGUA">Agua</option>
+            <option value="LUZ">Luz</option>
+            <option value="GAS">Gas</option>
+            <option value="INTERNET">Internet</option>
+          </select>
+          <input type="text" id="referencia" maxlength="30" placeholder="Referencia de la factura" required>
+          <input type="number" id="valorServicio" step="0.01" placeholder="Valor" required>
+          <button type="submit">Pagar</button>
+        </form>
+      </div>
+
+      <!-- 5. RECARGAR CELULAR -->
+      <div class="operacion" data-op="recarga">
+        <p class="ayuda">Programa COBOL <span class="cobol">RECARGAR-CELULAR</span> · recargas entre $5 y $500.</p>
+        <form class="fila" id="formRecarga">
+          <input type="tel" id="celular" maxlength="10" placeholder="Celular (10 dígitos)" required>
+          <input type="number" id="montoRecarga" step="0.01" placeholder="Monto" required>
+          <button type="submit">Recargar</button>
+        </form>
+        <div class="chips" id="recargasRapidas">
+          <button type="button" data-monto="10">$10</button>
+          <button type="button" data-monto="20">$20</button>
+          <button type="button" data-monto="50">$50</button>
+        </div>
+      </div>
+
       <div class="procesando" id="procesando">
         <span id="textoProcesando">Procesando…</span>
         <div class="barra"><div id="barraProgreso"></div></div>
@@ -140,10 +215,12 @@
 
     <section class="tarjeta">
       <h2>Historial</h2>
+      <div class="scroll-tabla">
       <table>
-        <thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th class="num">Monto</th><th class="num">Saldo</th></tr></thead>
-        <tbody id="historial"><tr><td colspan="5" class="vacio">Sin movimientos</td></tr></tbody>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th class="num">Monto</th><th class="num">Saldo</th></tr></thead>
+        <tbody id="historial"><tr><td colspan="6" class="vacio">Sin movimientos</td></tr></tbody>
       </table>
+      </div>
     </section>
   </section>
 
@@ -167,7 +244,7 @@
       </div>
       <p class="nota" id="notaConfig"></p>
       <p class="nota">
-        Para ver el <b>timeout del servidor</b>: ponga un retardo mayor que el timeout del servidor (p. ej. 4000) y haga un retiro.<br>
+        Para ver el <b>timeout del servidor</b>: ponga un retardo mayor que el timeout del servidor (p. ej. 4000) y haga cualquier operación.<br>
         Para ver el <b>timeout de la interfaz</b>: ponga un timeout de interfaz menor que el retardo (p. ej. retardo 2000, interfaz 1000).<br>
         Vuelva el retardo a 0 al terminar.
       </p>
@@ -328,6 +405,9 @@
       ).join("");
       $("usuariosDemo").querySelectorAll("button").forEach(b =>
         b.addEventListener("click", () => { $("telefono").value = b.dataset.telefono; }));
+      // Sugerencias de cuentas destino para la transferencia
+      $("listaDestinos").innerHTML = lista.map(u =>
+        `<option value="${esc(u.telefono)}">${esc(u.nombre)} ${esc(u.apellido)}</option>`).join("");
     } catch (e) {
       mostrar("mensajeIngreso", e.message, "error");
     }
@@ -448,12 +528,17 @@
     $("cntTotal").textContent      = historial.length;
 
     const textoEstado = { EXITOSA: "Exitosa", RECHAZADA: "Rechazada", TIMEOUT: "Timeout" };
+    const textoTipo = {
+      RETIRO: "Retiro", CONSIGNACION: "Consignación", TRANSFERENCIA_ENVIADA: "Transferencia enviada",
+      TRANSFERENCIA_RECIBIDA: "Transferencia recibida", PAGO_SERVICIO: "Pago de servicio", RECARGA: "Recarga celular"
+    };
     $("historial").innerHTML = historial.length === 0
-      ? '<tr><td colspan="5" class="vacio">Sin movimientos</td></tr>'
+      ? '<tr><td colspan="6" class="vacio">Sin movimientos</td></tr>'
       : [...historial].reverse().map(m => `
           <tr>
             <td>${new Date(m.fecha).toLocaleString("es-CO")}</td>
-            <td>${esc(m.tipo)}</td>
+            <td>${esc(textoTipo[m.tipo] ?? m.tipo)}</td>
+            <td class="detalle">${esc(m.detalle ?? "")}</td>
             <td><span class="chip ${esc(m.estado)}">${esc(textoEstado[m.estado] ?? m.estado)}</span></td>
             <td class="num">${fmt.format(m.monto)}</td>
             <td class="num">${fmt.format(m.saldoResultante)}</td>
@@ -486,24 +571,29 @@
 
   function bloquearOperaciones(bloquear) {
     estado.operando = bloquear;
-    $("btnRetirar").disabled = bloquear;
-    $("montosRapidos").querySelectorAll("button").forEach(b => b.disabled = bloquear);
+    $("tarjetaOperaciones").querySelectorAll(".operacion button").forEach(b => b.disabled = bloquear);
   }
 
-  async function retirar(monto) {
+  /**
+   * Envía cualquier operación al servidor.
+   * @param ruta    endpoint, p. ej. "/api/cuenta/retirar"
+   * @param body    datos de la operación
+   * @param limpiar campos a vaciar si la operación fue exitosa
+   */
+  async function operar(ruta, body, limpiar = []) {
     if (!estado.token || estado.operando) return;
     ocultar("mensaje");
     bloquearOperaciones(true);
     const detenerProgreso = iniciarProgreso();
     try {
-      const usuario = await api("/api/cuenta/retirar", { method: "POST", body: { monto } });
-      pintarUsuario(usuario);
-      const ultimo = usuario.historial[usuario.historial.length - 1];
-      if (ultimo && ultimo.estado === "EXITOSA") {
-        mostrar("mensaje", `Retiro exitoso de ${fmt.format(monto)}`, "ok");
-        $("monto").value = "";
+      const r = await api(ruta, { method: "POST", body });
+      pintarUsuario(r.usuario);
+      const codigo = ` [código COBOL ${r.codigoCobol}]`;
+      if (r.estado === "EXITOSA") {
+        mostrar("mensaje", r.mensaje + codigo, "ok");
+        limpiar.forEach(id => { $(id).value = ""; });
       } else {
-        mostrar("mensaje", `Retiro de ${fmt.format(monto)} rechazado: fondos insuficientes`, "error");
+        mostrar("mensaje", r.mensaje + codigo, "error");
       }
     } catch (e) {
       if (e.status === 504) {
@@ -533,12 +623,45 @@
     }
   }
 
-  $("formRetiro").addEventListener("submit", e => {
-    e.preventDefault();
-    retirar(parseFloat($("monto").value));
-  });
+  // ---------- Pestañas ----------
+  $("pestanas").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    const op = b.dataset.op;
+    $("pestanas").querySelectorAll("button").forEach(x => x.classList.toggle("activa", x === b));
+    $("tarjetaOperaciones").querySelectorAll(".operacion").forEach(x =>
+      x.classList.toggle("activa", x.dataset.op === op));
+    ocultar("mensaje");
+  }));
+
+  const numero = id => parseFloat($(id).value);
+  const enviar = (idForm, accion) => $(idForm).addEventListener("submit", e => { e.preventDefault(); accion(); });
+
+  // 1. Retirar
+  enviar("formRetiro", () => operar("/api/cuenta/retirar", { monto: numero("monto") }, ["monto"]));
   $("montosRapidos").querySelectorAll("button").forEach(b =>
-    b.addEventListener("click", () => retirar(parseFloat(b.dataset.monto))));
+    b.addEventListener("click", () => operar("/api/cuenta/retirar", { monto: parseFloat(b.dataset.monto) })));
+
+  // 2. Consignar
+  enviar("formConsignar", () =>
+    operar("/api/cuenta/consignar", { monto: numero("montoConsignar") }, ["montoConsignar"]));
+
+  // 3. Transferir
+  enviar("formTransferir", () => operar("/api/cuenta/transferir",
+    { telefonoDestino: $("telefonoDestino").value, monto: numero("montoTransferir") },
+    ["telefonoDestino", "montoTransferir"]));
+
+  // 4. Pagar servicio
+  enviar("formServicio", () => operar("/api/cuenta/pagar-servicio",
+    { servicio: $("servicio").value, referencia: $("referencia").value, valor: numero("valorServicio") },
+    ["referencia", "valorServicio"]));
+
+  // 5. Recargar celular
+  enviar("formRecarga", () => operar("/api/cuenta/recargar",
+    { celular: $("celular").value, monto: numero("montoRecarga") }, ["montoRecarga"]));
+  $("recargasRapidas").querySelectorAll("button").forEach(b =>
+    b.addEventListener("click", () => {
+      if (!$("celular").reportValidity()) return;
+      operar("/api/cuenta/recargar", { celular: $("celular").value, monto: parseFloat(b.dataset.monto) });
+    }));
 
   // =====================================================================
   // Arranque

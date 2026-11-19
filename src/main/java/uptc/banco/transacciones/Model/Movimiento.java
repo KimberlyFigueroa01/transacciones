@@ -9,17 +9,32 @@ public class Movimiento {
     private double monto;
     private String estado;
     private double saldoResultante;
+    /** Descripción libre: destino de la transferencia, servicio pagado, motivo del rechazo... */
+    private String detalle;
 
 public Movimiento(){
 
 }
 
 public Movimiento(Date fecha, String tipo, double monto, String estado, double saldoResultante){
+    this(fecha, tipo, monto, estado, saldoResultante, null);
+}
+
+public Movimiento(Date fecha, String tipo, double monto, String estado, double saldoResultante, String detalle){
     this.fecha = fecha;
     this.tipo = tipo;
     this.monto = monto;
     this.estado = estado;
     this.saldoResultante = saldoResultante;
+    this.detalle = detalle;
+}
+
+public String getDetalle() {
+    return detalle;
+}
+
+public void setDetalle(String detalle) {
+    this.detalle = detalle;
 }
 
 public Date getFecha(){return this.fecha;
@@ -64,7 +79,7 @@ public void setSaldoResultante(double saldoResultante) {
 @Override
 public String toString() {
     return "Movimiento [fecha=" + fecha + ", tipo=" + tipo + ", monto=" + monto + ", estado=" + estado
-            + ", saldoResultante=" + saldoResultante + "]";
+            + ", saldoResultante=" + saldoResultante + ", detalle=" + detalle + "]";
 }
 
     

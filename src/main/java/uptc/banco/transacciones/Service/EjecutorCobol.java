@@ -27,8 +27,9 @@ import uptc.banco.transacciones.Excepciones.OperacionTimeoutException;
  * llamadas se atienden de una en una.
  *
  * Nota: Java no puede detener a la fuerza una función nativa que ya empezó;
- * solo puede dejar de esperarla. Como RETIRAR-DINERO solo calcula y no
- * modifica datos, un resultado que llegue tarde simplemente se descarta.
+ * solo puede dejar de esperarla. Como los programas COBOL solo calculan y
+ * no modifican datos (Java es quien guarda), un resultado que llegue tarde
+ * simplemente se descarta.
  * El retardo de prueba sí se interrumpe al cancelar (es un Thread.sleep).
  */
 @Component

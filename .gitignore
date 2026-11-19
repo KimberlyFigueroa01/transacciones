@@ -32,8 +32,12 @@ build/
 ### VS Code ###
 .vscode/
 
-/Abrir bloc de notas.onetoc2
-
 ### Respaldos / temporales ###
+*.onetoc2
 *.bak
 *.tgz
+data/*.tmp
+
+### COBOL ###
+# C intermedio generado por cobc -C (se regenera con compilar-cobol.cmd)
+cobol/generado/
