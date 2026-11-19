@@ -4,57 +4,154 @@
     "nombre" : "Ana",
     "apellido" : "Gómez",
     "telefono" : "3001112233",
-    "saldo" : 300.0,
+    "saldo" : 650.0,
     "historial" : [ {
+      "detalle" : null,
+      "estado" : "EXITOSA",
       "fecha" : "2026-11-15T23:26:59.986Z",
-      "tipo" : "RETIRO",
       "monto" : 600.0,
-      "estado" : "EXITOSA",
-      "saldoResultante" : 400.0
+      "saldoResultante" : 400.0,
+      "tipo" : "RETIRO"
     }, {
+      "detalle" : null,
+      "estado" : "EXITOSA",
       "fecha" : "2026-11-15T23:42:22.176Z",
-      "tipo" : "RETIRO",
       "monto" : 100.0,
-      "estado" : "EXITOSA",
-      "saldoResultante" : 300.0
+      "saldoResultante" : 300.0,
+      "tipo" : "RETIRO"
     }, {
-      "fecha" : "2026-11-18T23:14:43.133Z",
-      "tipo" : "RETIRO",
-      "monto" : 600.0,
+      "detalle" : null,
       "estado" : "RECHAZADA",
-      "saldoResultante" : 300.0
+      "fecha" : "2026-11-18T23:14:43.133Z",
+      "monto" : 600.0,
+      "saldoResultante" : 300.0,
+      "tipo" : "RETIRO"
+    }, {
+      "detalle" : "De María Rojas (3207778899)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:03:31.193Z",
+      "monto" : 150.0,
+      "saldoResultante" : 450.0,
+      "tipo" : "TRANSFERENCIA_RECIBIDA"
+    }, {
+      "detalle" : "De María Rojas (3207778899)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:35:38.827Z",
+      "monto" : 250.0,
+      "saldoResultante" : 700.0,
+      "tipo" : "TRANSFERENCIA_RECIBIDA"
+    }, {
+      "detalle" : "Retiro en cajero",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:43:32.121Z",
+      "monto" : 50.0,
+      "saldoResultante" : 650.0,
+      "tipo" : "RETIRO"
+    }, {
+      "detalle" : "Consignación a la cuenta",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:49:00.645Z",
+      "monto" : 120.0,
+      "saldoResultante" : 770.0,
+      "tipo" : "CONSIGNACION"
+    }, {
+      "detalle" : "Retiro en cajero",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:59:51.677Z",
+      "monto" : 50.0,
+      "saldoResultante" : 720.0,
+      "tipo" : "RETIRO"
+    }, {
+      "detalle" : "A Luis Pérez (3104445566)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T18:00:05.122Z",
+      "monto" : 70.0,
+      "saldoResultante" : 650.0,
+      "tipo" : "TRANSFERENCIA_ENVIADA"
     } ]
   }, {
     "id" : 2,
     "nombre" : "Luis",
     "apellido" : "Pérez",
     "telefono" : "3104445566",
-    "saldo" : 150.0,
+    "saldo" : 220.0,
     "historial" : [ {
+      "detalle" : null,
+      "estado" : "EXITOSA",
       "fecha" : "2026-11-15T23:26:49.356Z",
-      "tipo" : "RETIRO",
       "monto" : 300.0,
-      "estado" : "EXITOSA",
-      "saldoResultante" : 200.0
+      "saldoResultante" : 200.0,
+      "tipo" : "RETIRO"
     }, {
-      "fecha" : "2026-11-15T23:42:06.799Z",
-      "tipo" : "RETIRO",
-      "monto" : 600.0,
+      "detalle" : null,
       "estado" : "RECHAZADA",
-      "saldoResultante" : 200.0
+      "fecha" : "2026-11-15T23:42:06.799Z",
+      "monto" : 600.0,
+      "saldoResultante" : 200.0,
+      "tipo" : "RETIRO"
     }, {
-      "fecha" : "2026-11-15T23:42:10.011Z",
-      "tipo" : "RETIRO",
-      "monto" : 50.0,
+      "detalle" : null,
       "estado" : "EXITOSA",
-      "saldoResultante" : 150.0
+      "fecha" : "2026-11-15T23:42:10.011Z",
+      "monto" : 50.0,
+      "saldoResultante" : 150.0,
+      "tipo" : "RETIRO"
+    }, {
+      "detalle" : "De Ana Gómez (3001112233)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T18:00:05.122Z",
+      "monto" : 70.0,
+      "saldoResultante" : 220.0,
+      "tipo" : "TRANSFERENCIA_RECIBIDA"
     } ]
   }, {
     "id" : 3,
     "nombre" : "María",
     "apellido" : "Rojas",
     "telefono" : "3207778899",
-    "saldo" : 1500.0,
-    "historial" : [ ]
+    "saldo" : 778.0,
+    "historial" : [ {
+      "detalle" : "Retiro en cajero",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:02:56.901Z",
+      "monto" : 600.0,
+      "saldoResultante" : 900.0,
+      "tipo" : "RETIRO"
+    }, {
+      "detalle" : "Consignación a la cuenta",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:03:10.994Z",
+      "monto" : 400.0,
+      "saldoResultante" : 1300.0,
+      "tipo" : "CONSIGNACION"
+    }, {
+      "detalle" : "A Ana Gómez (3001112233)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:03:31.193Z",
+      "monto" : 150.0,
+      "saldoResultante" : 1150.0,
+      "tipo" : "TRANSFERENCIA_ENVIADA"
+    }, {
+      "detalle" : "AGUA · ref. REF-001 · comisión $ 2,00",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:03:56.428Z",
+      "monto" : 102.0,
+      "saldoResultante" : 1048.0,
+      "tipo" : "PAGO_SERVICIO"
+    }, {
+      "detalle" : "Celular 3207778899",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:04:17.316Z",
+      "monto" : 20.0,
+      "saldoResultante" : 1028.0,
+      "tipo" : "RECARGA"
+    }, {
+      "detalle" : "A Ana Gómez (3001112233)",
+      "estado" : "EXITOSA",
+      "fecha" : "2026-11-19T17:35:38.827Z",
+      "monto" : 250.0,
+      "saldoResultante" : 778.0,
+      "tipo" : "TRANSFERENCIA_ENVIADA"
+    } ]
   } ]
 }

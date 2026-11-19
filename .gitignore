@@ -41,3 +41,4 @@ data/*.tmp
 ### COBOL ###
 # C intermedio generado por cobc -C (se regenera con compilar-cobol.cmd)
 cobol/generado/
+.claude/

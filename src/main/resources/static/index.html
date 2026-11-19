@@ -3,225 +3,371 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Banco UPTC · Cajero Java + COBOL</title>
+<title>Banco UPTC · Billetera Java + COBOL</title>
 <style>
   :root {
-    --azul: #1f3b73; --azul-claro: #e8eef9; --verde: #1e7d46; --rojo: #b3261e;
-    --ambar: #8a5a00; --ambar-claro: #fff4d6;
-    --gris: #6b7280; --borde: #d9dee7; --fondo: #f4f6fa;
+    --primario: #2b59e8; --primario-oscuro: #1d3fb8; --primario-suave: #e9effd;
+    --tinta: #141a2e; --gris: #6b7385; --borde: #e3e7ef; --fondo: #eef1f6; --blanco: #fff;
+    --verde: #17804a; --verde-suave: #e3f5ea; --rojo: #c0362c; --rojo-suave: #fdebe9;
+    --ambar: #8a5a00; --ambar-suave: #fff3d1;
+    --radio: 20px; --sombra: 0 1px 2px rgba(20,26,46,.04), 0 8px 24px rgba(20,26,46,.06);
   }
   * { box-sizing: border-box; }
-  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--fondo); color: #1c1f26; }
-  header { background: var(--azul); color: #fff; padding: 14px 24px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
-  header h1 { margin: 0; font-size: 1.2rem; }
-  header p { margin: 2px 0 0; font-size: .8rem; opacity: .8; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: var(--fondo); color: var(--tinta); }
+  button { font: inherit; border: 0; cursor: pointer; border-radius: 12px; padding: 11px 18px; background: var(--primario); color: #fff; font-weight: 600; transition: background .15s, transform .05s; }
+  button:hover { background: var(--primario-oscuro); }
+  button:active { transform: translateY(1px); }
+  button:disabled { opacity: .55; cursor: wait; }
+  button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(43,89,232,.35); outline-offset: 2px; }
+  input, select { font: inherit; width: 100%; padding: 12px 14px; border: 1px solid var(--borde); border-radius: 12px; background: #fff; color: var(--tinta); }
+  input:focus, select:focus { border-color: var(--primario); }
+  label { display: block; font-size: .8rem; font-weight: 600; color: var(--gris); margin-bottom: 6px; }
+  .oculto { display: none !important; }
+
+  /* ---------- Barra superior ---------- */
+  .barra-superior { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; max-width: 1180px; margin: 0 auto; padding: 20px 24px 0; }
+  .marca { display: flex; align-items: center; gap: 10px; }
+  .marca .logo { width: 38px; height: 38px; border-radius: 12px; background: var(--primario); color: #fff; display: grid; place-items: center; font-weight: 800; }
+  .marca h1 { margin: 0; font-size: 1.05rem; }
+  .marca p { margin: 0; font-size: .75rem; color: var(--gris); }
   .sesion-info { display: none; align-items: center; gap: 10px; font-size: .85rem; }
   .sesion-info.visible { display: flex; }
-  .reloj { background: rgba(255,255,255,.15); padding: 4px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
-  .reloj.alerta { background: #f6c344; color: #3b2a00; }
-  header button { background: rgba(255,255,255,.15); color: #fff; padding: 6px 12px; font-size: .85rem; }
-  main { max-width: 760px; margin: 24px auto; padding: 0 16px; display: grid; gap: 16px; }
-  .oculto { display: none !important; }
-  .tarjeta { background: #fff; border: 1px solid var(--borde); border-radius: 10px; padding: 20px; }
-  .tarjeta h2 { margin: 0 0 12px; font-size: 1rem; color: var(--azul); }
-  label { font-size: .85rem; color: var(--gris); display: block; margin-bottom: 6px; }
-  input { width: 100%; padding: 10px 12px; font-size: 1rem; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }
-  form.fila { display: flex; gap: 8px; flex-wrap: wrap; }
-  form.fila input { flex: 1; min-width: 160px; width: auto; }
-  button { padding: 10px 16px; font-size: .95rem; border: 0; border-radius: 8px; cursor: pointer; background: var(--azul); color: #fff; }
-  button:disabled { opacity: .6; cursor: wait; }
-  .chips { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
-  .chips button { background: var(--azul-claro); color: var(--azul); padding: 6px 12px; font-size: .85rem; }
-  .usuario-info { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
-  .nombre { font-size: 1.1rem; font-weight: 600; }
-  .etiqueta { color: var(--gris); font-size: .85rem; }
-  .saldo { font-size: 2.2rem; font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; }
-  .contadores { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 16px; }
-  .contador { background: var(--fondo); border-radius: 8px; padding: 10px; text-align: center; }
-  .contador b { display: block; font-size: 1.3rem; }
-  .contador span { font-size: .78rem; color: var(--gris); }
-  .mensaje { margin-top: 12px; padding: 10px 12px; border-radius: 8px; font-size: .9rem; display: none; }
-  .mensaje.ok { display: block; background: #e6f4ec; color: var(--verde); }
-  .mensaje.error { display: block; background: #fbe9e7; color: var(--rojo); }
-  .mensaje.timeout { display: block; background: var(--ambar-claro); color: var(--ambar); }
-  .mensaje.info { display: block; background: var(--azul-claro); color: var(--azul); }
-  .procesando { margin-top: 12px; font-size: .85rem; color: var(--gris); display: none; }
-  .procesando.visible { display: block; }
-  .barra { height: 6px; background: var(--azul-claro); border-radius: 999px; overflow: hidden; margin-top: 6px; }
-  .barra div { height: 100%; width: 0; background: var(--azul); transition: width .1s linear; }
-  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-  th, td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--borde); }
-  th { color: var(--gris); font-weight: 600; }
-  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
-  .chip { padding: 2px 8px; border-radius: 999px; font-size: .78rem; }
-  .chip.EXITOSA { background: #e6f4ec; color: var(--verde); }
-  .chip.RECHAZADA { background: #fbe9e7; color: var(--rojo); }
-  .chip.TIMEOUT { background: var(--ambar-claro); color: var(--ambar); }
-  .vacio { color: var(--gris); text-align: center; padding: 12px; }
-  td.detalle { color: var(--gris); font-size: .8rem; }
-  /* Pestañas de operaciones */
-  .pestanas { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; border-bottom: 1px solid var(--borde); }
-  .pestanas button { background: none; color: var(--gris); border-radius: 8px 8px 0 0; padding: 8px 12px; font-size: .88rem; border-bottom: 3px solid transparent; }
-  .pestanas button.activa { color: var(--azul); border-bottom-color: var(--azul); font-weight: 600; }
+  .reloj { background: #fff; border: 1px solid var(--borde); padding: 7px 12px; border-radius: 999px; font-variant-numeric: tabular-nums; color: var(--gris); }
+  .reloj.alerta { background: #f6c344; border-color: #f6c344; color: #3b2a00; }
+  .boton-claro { background: #fff; color: var(--tinta); border: 1px solid var(--borde); padding: 8px 14px; font-weight: 600; }
+  .boton-claro:hover { background: var(--primario-suave); }
+
+  main { max-width: 1180px; margin: 0 auto; padding: 20px 24px 40px; display: grid; gap: 20px; }
+  main > * { min-width: 0; }
+  .tarjeta { background: var(--blanco); border-radius: var(--radio); padding: 24px; box-shadow: var(--sombra); min-width: 0; }
+  .tarjeta-titulo { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 16px; }
+  .tarjeta-titulo h2 { margin: 0; font-size: 1.05rem; }
+  .enlace { background: none; color: var(--primario); padding: 4px 6px; font-size: .85rem; }
+  .enlace:hover { background: var(--primario-suave); }
+
+  /* ---------- Ingreso ---------- */
+  .ingreso { max-width: 440px; width: 100%; margin: 40px auto 0; padding: 0; overflow: hidden; }
+  .ingreso .portada { background: linear-gradient(135deg, var(--primario), #4f7bff); color: #fff; padding: 28px 28px 32px; }
+  .ingreso .portada h2 { margin: 0 0 6px; font-size: 1.5rem; }
+  .ingreso .portada p { margin: 0; opacity: .85; font-size: .9rem; }
+  .ingreso .cuerpo { padding: 24px 28px 28px; }
+  .ingreso form { display: grid; gap: 12px; }
+  .usuarios-demo { display: grid; gap: 8px; margin-top: 10px; }
+  .usuarios-demo button { display: flex; align-items: center; gap: 12px; background: var(--fondo); color: var(--tinta); text-align: left; font-weight: 500; padding: 10px 12px; }
+  .usuarios-demo button:hover { background: var(--primario-suave); }
+  .avatar { width: 36px; height: 36px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; background: var(--primario-suave); color: var(--primario); }
+  .usuarios-demo small { display: block; color: var(--gris); font-size: .78rem; }
+
+  /* ---------- Cajero: dos columnas ---------- */
+  .cajero { display: grid; grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 20px; align-items: start; }
+  .columna { display: grid; gap: 20px; min-width: 0; }
+  .cajero > .columna:first-child { position: sticky; top: 20px; } /* la tarjeta azul acompaña al bajar */
+
+  /* Tarjeta azul principal (como la referencia) */
+  .resumen { background: linear-gradient(160deg, var(--primario) 0%, #3d6cf5 60%, #4f7bff 100%); color: #fff; border-radius: 28px; padding: 24px; box-shadow: 0 16px 40px rgba(43,89,232,.25); }
+  .resumen .saludo { display: flex; align-items: center; gap: 12px; }
+  .resumen .saludo .avatar { background: rgba(255,255,255,.2); color: #fff; width: 42px; height: 42px; }
+  .resumen .saludo small { display: block; opacity: .8; font-size: .78rem; }
+  .resumen .saludo .nombre { font-weight: 700; font-size: 1.05rem; }
+  .resumen .etiqueta-saldo { margin: 26px 0 2px; font-size: .85rem; opacity: .85; }
+  .resumen .saldo { font-size: 2.7rem; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; line-height: 1.1; overflow-wrap: anywhere; }
+  .resumen .indicadores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .resumen .indicador { background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.18); border-radius: 16px; padding: 12px 14px; }
+  .resumen .indicador span { display: block; font-size: .74rem; opacity: .85; }
+  .resumen .indicador b { display: block; font-size: 1.15rem; margin-top: 2px; }
+  .resumen .extra { margin-top: 10px; font-size: .78rem; opacity: .8; }
+  .resumen .botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .resumen .botones button { display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 14px; }
+  .resumen .boton-blanco { background: #fff; color: var(--primario); }
+  .resumen .boton-blanco:hover { background: #f1f4ff; }
+  .resumen .boton-borde { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.7); }
+  .resumen .boton-borde:hover { background: rgba(255,255,255,.12); }
+
+  /* ---------- Operaciones ---------- */
+  .selector-ops { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .selector-ops button { display: grid; justify-items: center; gap: 8px; background: var(--fondo); color: var(--tinta); padding: 14px 6px; font-size: .8rem; font-weight: 600; border: 2px solid transparent; border-radius: 16px; }
+  .selector-ops button:hover { background: var(--primario-suave); }
+  .selector-ops button.activa { background: var(--primario-suave); border-color: var(--primario); color: var(--primario); }
+  .icono { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: #fff; color: var(--primario); }
+  .icono svg { width: 20px; height: 20px; }
+  .selector-ops button.activa .icono { background: var(--primario); color: #fff; }
+
   .operacion { display: none; }
   .operacion.activa { display: block; }
-  .operacion .ayuda { font-size: .8rem; color: var(--gris); margin: 0 0 10px; }
-  .operacion .cobol { font-family: Consolas, monospace; background: var(--azul-claro); color: var(--azul); padding: 1px 6px; border-radius: 4px; }
-  select { padding: 10px 12px; font-size: 1rem; border: 1px solid var(--borde); border-radius: 8px; background: #fff; }
-  .scroll-tabla { overflow-x: auto; }
-  details.pruebas { background: #fff; border: 1px dashed var(--borde); border-radius: 10px; padding: 12px 20px; }
-  details.pruebas summary { cursor: pointer; color: var(--gris); font-size: .9rem; }
-  .pruebas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .operacion .ayuda { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .82rem; color: var(--gris); margin: 0 0 16px; }
+  .cobol { font-family: Consolas, "Cascadia Mono", monospace; font-size: .75rem; background: var(--tinta); color: #fff; padding: 3px 8px; border-radius: 6px; }
+  .formulario { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+  .formulario .completo { grid-column: 1 / -1; }
+  .formulario .enviar { grid-column: 1 / -1; padding: 14px; border-radius: 14px; font-size: 1rem; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .chips button { background: var(--fondo); color: var(--tinta); padding: 7px 14px; font-size: .85rem; border-radius: 999px; font-weight: 600; }
+  .chips button:hover { background: var(--primario-suave); }
+  .chips button.elegido { background: var(--primario); color: #fff; }
+
+  .mensaje { margin-top: 16px; padding: 12px 14px; border-radius: 12px; font-size: .9rem; display: none; }
+  .mensaje.ok { display: block; background: var(--verde-suave); color: var(--verde); }
+  .mensaje.error { display: block; background: var(--rojo-suave); color: var(--rojo); }
+  .mensaje.timeout { display: block; background: var(--ambar-suave); color: var(--ambar); }
+  .mensaje.info { display: block; background: var(--primario-suave); color: var(--primario-oscuro); }
+  .procesando { margin-top: 16px; font-size: .85rem; color: var(--gris); display: none; }
+  .procesando.visible { display: block; }
+  .barra { height: 6px; background: var(--primario-suave); border-radius: 999px; overflow: hidden; margin-top: 6px; }
+  .barra div { height: 100%; width: 0; background: var(--primario); transition: width .1s linear; }
+
+  /* ---------- Historial: línea de tiempo ---------- */
+  .linea-tiempo { list-style: none; margin: 0; padding: 0; position: relative; }
+  .linea-tiempo::before { content: ""; position: absolute; left: 25px; top: 8px; bottom: 8px; width: 2px; background: var(--borde); }
+  .linea-tiempo li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 14px; align-items: start; position: relative; padding: 6px 0; }
+  .fecha { width: 52px; border-radius: 12px; background: #fff; border: 1px solid var(--borde); text-align: center; padding: 6px 0; position: relative; z-index: 1; }
+  .fecha small { display: block; font-size: .62rem; font-weight: 700; color: var(--gris); letter-spacing: .5px; }
+  .fecha b { display: block; font-size: 1.15rem; line-height: 1.1; }
+  .linea-tiempo li:first-child .fecha { background: var(--tinta); border-color: var(--tinta); color: #fff; }
+  .linea-tiempo li:first-child .fecha small { color: rgba(255,255,255,.7); }
+  .movimiento { border: 1px solid var(--borde); border-radius: 16px; padding: 12px 14px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; }
+  .movimiento .tipo { font-size: .85rem; color: var(--gris); }
+  .movimiento .monto { font-size: 1.2rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .movimiento .monto.entrada { color: var(--verde); }
+  .movimiento .derecha { text-align: right; display: grid; gap: 6px; justify-items: end; align-content: start; }
+  .movimiento .detalle { grid-column: 1 / -1; font-size: .78rem; color: var(--gris); overflow-wrap: anywhere; }
+  .movimiento .saldo-res { font-size: .75rem; color: var(--gris); font-variant-numeric: tabular-nums; }
+  .movimiento .barra-saldo { grid-column: 1 / -1; height: 4px; background: var(--fondo); border-radius: 999px; overflow: hidden; margin-top: 4px; }
+  .movimiento .barra-saldo div { height: 100%; background: var(--primario); border-radius: 999px; }
+  .chip { padding: 3px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; white-space: nowrap; }
+  .chip.EXITOSA { background: var(--verde-suave); color: var(--verde); }
+  .chip.RECHAZADA { background: var(--rojo-suave); color: var(--rojo); }
+  .chip.TIMEOUT { background: var(--ambar-suave); color: var(--ambar); }
+  .vacio { color: var(--gris); text-align: center; padding: 24px 12px; display: block !important; }
+  .linea-tiempo li.vacio::before { display: none; }
+
+  /* ---------- Panel de pruebas ---------- */
+  details.pruebas { background: transparent; border: 1.5px dashed #cfd5e2; border-radius: var(--radio); padding: 14px 20px; }
+  details.pruebas summary { cursor: pointer; color: var(--gris); font-size: .9rem; font-weight: 600; }
+  .pruebas-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
   .pruebas-grid .nota { grid-column: 1 / -1; font-size: .8rem; color: var(--gris); margin: 0; }
-  .fila-boton { display: flex; gap: 6px; }
-  .fila-boton button { padding: 8px 12px; font-size: .85rem; }
-  /* Aviso de inactividad */
-  .fondo-modal { position: fixed; inset: 0; background: rgba(20,25,40,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
-  .modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 360px; width: 100%; text-align: center; }
-  .modal h3 { margin: 0 0 8px; color: var(--azul); }
-  .modal .cuenta { font-size: 2.6rem; font-weight: 700; margin: 8px 0 16px; font-variant-numeric: tabular-nums; }
-  .modal .acciones { display: flex; gap: 8px; justify-content: center; }
-  .modal .secundario { background: var(--azul-claro); color: var(--azul); }
+  .fila-boton { display: flex; gap: 8px; }
+  .fila-boton button { padding: 8px 14px; }
+
+  /* ---------- Ventanas (confirmación e inactividad) ---------- */
+  .fondo-modal { position: fixed; inset: 0; background: rgba(20,26,46,.45); display: flex; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .modal { background: #fff; border-radius: 24px; padding: 28px; max-width: 380px; width: 100%; text-align: center; box-shadow: 0 24px 60px rgba(20,26,46,.25); }
+  .modal h3 { margin: 0 0 8px; font-size: 1.2rem; }
+  .modal .etiqueta { color: var(--gris); font-size: .88rem; }
+  .modal .cuenta { font-size: 2.8rem; font-weight: 800; margin: 8px 0 18px; font-variant-numeric: tabular-nums; color: var(--primario); }
+  .modal .acciones { display: flex; gap: 10px; justify-content: center; }
+  .modal .acciones button { flex: 1; }
+  .modal .secundario { background: var(--fondo); color: var(--tinta); }
+  .modal .secundario:hover { background: var(--borde); }
+  .modal.confirmacion { text-align: left; max-width: 420px; }
+  .modal.confirmacion h3 { text-align: center; }
+  .modal.confirmacion dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 16px; margin: 18px 0 22px; padding: 16px; background: var(--fondo); border-radius: 16px; font-size: .92rem; }
+  .modal.confirmacion dt { color: var(--gris); }
+  .modal.confirmacion dd { margin: 0; font-weight: 700; text-align: right; overflow-wrap: anywhere; }
+
+  /* ---------- Pantallas angostas ---------- */
+  @media (max-width: 900px) {
+    .cajero { grid-template-columns: minmax(0, 1fr); }
+    .cajero > .columna:first-child { position: static; }
+  }
+  @media (max-width: 560px) {
+    .barra-superior, main { padding-left: 16px; padding-right: 16px; }
+    .selector-ops { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .formulario, .pruebas-grid { grid-template-columns: minmax(0, 1fr); }
+    .resumen .saldo { font-size: 2.2rem; }
+    .tarjeta { padding: 18px; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <div>
-    <h1>Banco UPTC · Cajero</h1>
-    <p>Spring Boot · operaciones en COBOL (DLL vía JNA) · datos en banco.json</p>
+<!-- Íconos reutilizables -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-retiro" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12l7 7 7-7"/></symbol>
+  <symbol id="i-consigna" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-transfer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h12l-4-4M17 17H5l4 4"/></symbol>
+  <symbol id="i-servicio" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6"/></symbol>
+  <symbol id="i-recarga" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></symbol>
+</svg>
+
+<div class="barra-superior">
+  <div class="marca">
+    <div class="logo">U</div>
+    <div>
+      <h1>Banco UPTC</h1>
+      <p>Spring Boot · operaciones en COBOL (DLL vía JNA)</p>
+    </div>
   </div>
   <div class="sesion-info" id="sesionInfo">
     <span class="reloj" id="reloj" title="Tiempo restante antes de cerrar la sesión por inactividad">Sesión 1:00</span>
-    <button id="btnSalir">Cerrar sesión</button>
+    <button class="boton-claro" id="btnSalir">Cerrar sesión</button>
   </div>
-</header>
+</div>
 
 <main>
   <!-- ================= PANTALLA DE INGRESO ================= -->
-  <section id="pantallaIngreso" class="tarjeta">
-    <h2>Ingresar</h2>
-    <form class="fila" id="formIngreso">
-      <input type="tel" id="telefono" placeholder="Número de teléfono de la cuenta" required>
-      <button type="submit" id="btnIngresar">Ingresar</button>
-    </form>
-    <div class="etiqueta" style="margin-top:12px">Usuarios de prueba:</div>
-    <div class="chips" id="usuariosDemo"></div>
-    <div class="mensaje" id="mensajeIngreso"></div>
+  <section id="pantallaIngreso" class="tarjeta ingreso">
+    <div class="portada">
+      <h2>Bienvenido</h2>
+      <p>Ingrese con el número de teléfono de su cuenta.</p>
+    </div>
+    <div class="cuerpo">
+      <form id="formIngreso">
+        <div>
+          <label for="telefono">Teléfono</label>
+          <input type="tel" id="telefono" placeholder="Ej. 3001112233" required>
+        </div>
+        <button type="submit" id="btnIngresar">Ingresar</button>
+      </form>
+      <div class="mensaje" id="mensajeIngreso"></div>
+      <label style="margin-top:22px">Usuarios de prueba</label>
+      <div class="usuarios-demo" id="usuariosDemo"></div>
+    </div>
   </section>
 
   <!-- ================= PANTALLA DEL CAJERO ================= -->
-  <section id="pantallaCajero" class="oculto" style="display:grid; gap:16px">
-    <section class="tarjeta">
-      <div class="usuario-info">
-        <div>
-          <div class="nombre" id="nombre">—</div>
-          <div class="etiqueta" id="telefonoUsuario"></div>
+  <section id="pantallaCajero" class="cajero oculto">
+    <!-- Columna izquierda: resumen -->
+    <div class="columna">
+      <section class="resumen">
+        <div class="saludo">
+          <div class="avatar" id="inicial">—</div>
+          <div>
+            <small>Bienvenido de nuevo</small>
+            <div class="nombre" id="nombre">—</div>
+          </div>
         </div>
-        <div>
-          <div class="etiqueta" style="text-align:right">Saldo actual</div>
-          <div class="saldo" id="saldo">—</div>
+        <div class="etiqueta-saldo">Saldo disponible · <span id="telefonoUsuario"></span></div>
+        <div class="saldo" id="saldo">—</div>
+        <div class="indicadores">
+          <div class="indicador"><span>Operaciones exitosas</span><b id="cntExitosas">0</b></div>
+          <div class="indicador"><span>Rechazadas</span><b id="cntRechazadas">0</b></div>
         </div>
-      </div>
-      <div class="contadores">
-        <div class="contador"><b id="cntExitosas">0</b><span>Exitosas</span></div>
-        <div class="contador"><b id="cntRechazadas">0</b><span>Rechazadas</span></div>
-        <div class="contador"><b id="cntTimeouts">0</b><span>Timeouts</span></div>
-        <div class="contador"><b id="cntTotal">0</b><span>Movimientos</span></div>
-      </div>
-    </section>
-
-    <section class="tarjeta" id="tarjetaOperaciones">
-      <h2>Operaciones</h2>
-      <div class="pestanas" id="pestanas">
-        <button type="button" data-op="retiro" class="activa">Retirar</button>
-        <button type="button" data-op="consignacion">Consignar</button>
-        <button type="button" data-op="transferencia">Transferir</button>
-        <button type="button" data-op="servicio">Pagar servicio</button>
-        <button type="button" data-op="recarga">Recargar celular</button>
-      </div>
-
-      <!-- 1. RETIRAR -->
-      <div class="operacion activa" data-op="retiro">
-        <p class="ayuda">Programa COBOL <span class="cobol">RETIRAR-DINERO</span> · rechaza si el saldo no alcanza.</p>
-        <form class="fila" id="formRetiro">
-          <input type="number" id="monto" step="0.01" placeholder="Monto a retirar" required>
-          <button type="submit">Retirar</button>
-        </form>
-        <div class="chips" id="montosRapidos">
-          <button type="button" data-monto="50">$50</button>
-          <button type="button" data-monto="100">$100</button>
-          <button type="button" data-monto="300">$300</button>
-          <button type="button" data-monto="600">$600</button>
+        <div class="extra">Timeouts: <b id="cntTimeouts">0</b> · Movimientos totales: <b id="cntTotal">0</b></div>
+        <div class="botones">
+          <button type="button" class="boton-blanco" data-ir="consignacion"><svg width="18" height="18"><use href="#i-consigna"/></svg>Consignar</button>
+          <button type="button" class="boton-borde" data-ir="retiro"><svg width="18" height="18"><use href="#i-retiro"/></svg>Retirar</button>
         </div>
-      </div>
+      </section>
+    </div>
 
-      <!-- 2. CONSIGNAR -->
-      <div class="operacion" data-op="consignacion">
-        <p class="ayuda">Programa COBOL <span class="cobol">CONSIGNAR-DINERO</span> · tope de $10.000 por consignación.</p>
-        <form class="fila" id="formConsignar">
-          <input type="number" id="montoConsignar" step="0.01" placeholder="Monto a consignar" required>
-          <button type="submit">Consignar</button>
-        </form>
-      </div>
-
-      <!-- 3. TRANSFERIR -->
-      <div class="operacion" data-op="transferencia">
-        <p class="ayuda">Programa COBOL <span class="cobol">TRANSFERIR-DINERO</span> · descuenta de su cuenta y abona al destino en un solo cálculo.</p>
-        <form class="fila" id="formTransferir">
-          <input type="tel" id="telefonoDestino" list="listaDestinos" placeholder="Teléfono destino" required>
-          <datalist id="listaDestinos"></datalist>
-          <input type="number" id="montoTransferir" step="0.01" placeholder="Monto" required>
-          <button type="submit">Transferir</button>
-        </form>
-      </div>
-
-      <!-- 4. PAGAR SERVICIO -->
-      <div class="operacion" data-op="servicio">
-        <p class="ayuda">Programa COBOL <span class="cobol">PAGAR-SERVICIO</span> · cobra el valor de la factura + comisión fija de $2.</p>
-        <form class="fila" id="formServicio">
-          <select id="servicio" required>
-            <option value="AGUA">Agua</option>
-            <option value="LUZ">Luz</option>
-            <option value="GAS">Gas</option>
-            <option value="INTERNET">Internet</option>
-          </select>
-          <input type="text" id="referencia" maxlength="30" placeholder="Referencia de la factura" required>
-          <input type="number" id="valorServicio" step="0.01" placeholder="Valor" required>
-          <button type="submit">Pagar</button>
-        </form>
-      </div>
-
-      <!-- 5. RECARGAR CELULAR -->
-      <div class="operacion" data-op="recarga">
-        <p class="ayuda">Programa COBOL <span class="cobol">RECARGAR-CELULAR</span> · recargas entre $5 y $500.</p>
-        <form class="fila" id="formRecarga">
-          <input type="tel" id="celular" maxlength="10" placeholder="Celular (10 dígitos)" required>
-          <input type="number" id="montoRecarga" step="0.01" placeholder="Monto" required>
-          <button type="submit">Recargar</button>
-        </form>
-        <div class="chips" id="recargasRapidas">
-          <button type="button" data-monto="10">$10</button>
-          <button type="button" data-monto="20">$20</button>
-          <button type="button" data-monto="50">$50</button>
+    <!-- Columna derecha: operaciones e historial -->
+    <div class="columna">
+      <section class="tarjeta" id="tarjetaOperaciones">
+        <div class="tarjeta-titulo"><h2>¿Qué quiere hacer?</h2></div>
+        <div class="selector-ops" id="pestanas">
+          <button type="button" data-op="retiro" class="activa"><span class="icono"><svg><use href="#i-retiro"/></svg></span>Retirar</button>
+          <button type="button" data-op="consignacion"><span class="icono"><svg><use href="#i-consigna"/></svg></span>Consignar</button>
+          <button type="button" data-op="transferencia"><span class="icono"><svg><use href="#i-transfer"/></svg></span>Transferir</button>
+          <button type="button" data-op="servicio"><span class="icono"><svg><use href="#i-servicio"/></svg></span>Pagar servicio</button>
+          <button type="button" data-op="recarga"><span class="icono"><svg><use href="#i-recarga"/></svg></span>Recargar</button>
         </div>
-      </div>
 
-      <div class="procesando" id="procesando">
-        <span id="textoProcesando">Procesando…</span>
-        <div class="barra"><div id="barraProgreso"></div></div>
-      </div>
-      <div class="mensaje" id="mensaje"></div>
-    </section>
+        <!-- 1. RETIRAR -->
+        <div class="operacion activa" data-op="retiro">
+          <p class="ayuda"><span class="cobol">RETIRAR-DINERO</span> Rechaza si el saldo no alcanza.</p>
+          <form class="formulario" id="formRetiro">
+            <div class="completo">
+              <label for="monto">Monto a retirar</label>
+              <input type="number" id="monto" step="0.01" placeholder="$ 0,00" required>
+              <div class="chips" id="montosRapidos">
+                <button type="button" data-monto="50">$50</button>
+                <button type="button" data-monto="100">$100</button>
+                <button type="button" data-monto="300">$300</button>
+                <button type="button" data-monto="600">$600</button>
+              </div>
+            </div>
+            <button type="submit" class="enviar">Continuar</button>
+          </form>
+        </div>
 
-    <section class="tarjeta">
-      <h2>Historial</h2>
-      <div class="scroll-tabla">
-      <table>
-        <thead><tr><th>Fecha</th><th>Tipo</th><th>Detalle</th><th>Estado</th><th class="num">Monto</th><th class="num">Saldo</th></tr></thead>
-        <tbody id="historial"><tr><td colspan="6" class="vacio">Sin movimientos</td></tr></tbody>
-      </table>
-      </div>
-    </section>
+        <!-- 2. CONSIGNAR -->
+        <div class="operacion" data-op="consignacion">
+          <p class="ayuda"><span class="cobol">CONSIGNAR-DINERO</span> Tope de $10.000 por consignación.</p>
+          <form class="formulario" id="formConsignar">
+            <div class="completo">
+              <label for="montoConsignar">Monto a consignar</label>
+              <input type="number" id="montoConsignar" step="0.01" placeholder="$ 0,00" required>
+            </div>
+            <button type="submit" class="enviar">Continuar</button>
+          </form>
+        </div>
+
+        <!-- 3. TRANSFERIR -->
+        <div class="operacion" data-op="transferencia">
+          <p class="ayuda"><span class="cobol">TRANSFERIR-DINERO</span> Descuenta de su cuenta y abona al destino en un solo cálculo.</p>
+          <form class="formulario" id="formTransferir">
+            <div>
+              <label for="telefonoDestino">Teléfono destino</label>
+              <input type="tel" id="telefonoDestino" list="listaDestinos" placeholder="Ej. 3104445566" required>
+              <datalist id="listaDestinos"></datalist>
+            </div>
+            <div>
+              <label for="montoTransferir">Monto</label>
+              <input type="number" id="montoTransferir" step="0.01" placeholder="$ 0,00" required>
+            </div>
+            <button type="submit" class="enviar">Continuar</button>
+          </form>
+        </div>
+
+        <!-- 4. PAGAR SERVICIO -->
+        <div class="operacion" data-op="servicio">
+          <p class="ayuda"><span class="cobol">PAGAR-SERVICIO</span> Cobra el valor de la factura + comisión fija de $2.</p>
+          <form class="formulario" id="formServicio">
+            <div>
+              <label for="servicio">Servicio</label>
+              <select id="servicio" required>
+                <option value="AGUA">Agua</option>
+                <option value="LUZ">Luz</option>
+                <option value="GAS">Gas</option>
+                <option value="INTERNET">Internet</option>
+              </select>
+            </div>
+            <div>
+              <label for="referencia">Referencia de la factura</label>
+              <input type="text" id="referencia" maxlength="30" placeholder="Ej. FAC-001" required>
+            </div>
+            <div class="completo">
+              <label for="valorServicio">Valor de la factura</label>
+              <input type="number" id="valorServicio" step="0.01" placeholder="$ 0,00" required>
+            </div>
+            <button type="submit" class="enviar">Continuar</button>
+          </form>
+        </div>
+
+        <!-- 5. RECARGAR CELULAR -->
+        <div class="operacion" data-op="recarga">
+          <p class="ayuda"><span class="cobol">RECARGAR-CELULAR</span> Recargas entre $5 y $500.</p>
+          <form class="formulario" id="formRecarga">
+            <div>
+              <label for="celular">Celular</label>
+              <input type="tel" id="celular" maxlength="10" placeholder="10 dígitos" required>
+            </div>
+            <div>
+              <label for="montoRecarga">Monto</label>
+              <input type="number" id="montoRecarga" step="0.01" placeholder="$ 0,00" required>
+              <div class="chips" id="recargasRapidas">
+                <button type="button" data-monto="10">$10</button>
+                <button type="button" data-monto="20">$20</button>
+                <button type="button" data-monto="50">$50</button>
+              </div>
+            </div>
+            <button type="submit" class="enviar">Continuar</button>
+          </form>
+        </div>
+
+        <div class="procesando" id="procesando">
+          <span id="textoProcesando">Procesando…</span>
+          <div class="barra"><div id="barraProgreso"></div></div>
+        </div>
+        <div class="mensaje" id="mensaje"></div>
+      </section>
+
+      <section class="tarjeta">
+        <div class="tarjeta-titulo">
+          <h2>Movimientos recientes</h2>
+          <button type="button" class="enlace" id="btnVerTodo">Ver todo</button>
+        </div>
+        <ol class="linea-tiempo" id="historial"><li class="vacio">Sin movimientos</li></ol>
+      </section>
+    </div>
   </section>
 
   <!-- ================= PANEL DE PRUEBAS ================= -->
@@ -252,6 +398,18 @@
   </details>
 </main>
 
+<!-- Confirmación de operaciones: nada se envía al COBOL hasta presionar "Confirmar" -->
+<div class="fondo-modal oculto" id="ventanaConfirmacion">
+  <div class="modal confirmacion" role="dialog" aria-modal="true" aria-labelledby="tituloConfirmacion">
+    <h3 id="tituloConfirmacion">Confirmar operación</h3>
+    <dl id="resumenConfirmacion"></dl>
+    <div class="acciones">
+      <button class="secundario" id="btnCancelar" type="button">Cancelar</button>
+      <button id="btnConfirmar" type="button">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <!-- Aviso de inactividad -->
 <div class="fondo-modal oculto" id="avisoInactividad">
   <div class="modal" role="alertdialog" aria-labelledby="tituloAviso">
@@ -272,6 +430,7 @@
   const AVISO_MS = 10_000;          // el aviso aparece 10 s antes del cierre
   const PING_CADA_MS = 5_000;       // cada cuánto se informa actividad al servidor
   const MARGEN_INTERFAZ_MS = 2_000; // la interfaz espera un poco más que el servidor
+  const MOVIMIENTOS_VISIBLES = 5;   // movimientos que se ven sin presionar "Ver todo"
 
   const estado = {
     config: { timeoutCobolMs: 3000, retardoCobolMs: 0, inactividadSegundos: 60 },
@@ -400,9 +559,12 @@
   async function cargarUsuariosDemo() {
     try {
       const lista = await api("/api/sesion/usuarios-demo");
-      $("usuariosDemo").innerHTML = lista.map(u =>
-        `<button type="button" data-telefono="${esc(u.telefono)}">${esc(u.nombre)} ${esc(u.apellido)} · ${esc(u.telefono)}</button>`
-      ).join("");
+      estado.usuariosDemo = lista; // para mostrar el nombre del destino al confirmar transferencias
+      $("usuariosDemo").innerHTML = lista.map(u => `
+        <button type="button" data-telefono="${esc(u.telefono)}">
+          <span class="avatar">${esc((u.nombre ?? "?").charAt(0))}</span>
+          <span>${esc(u.nombre)} ${esc(u.apellido)}<small>${esc(u.telefono)}</small></span>
+        </button>`).join("");
       $("usuariosDemo").querySelectorAll("button").forEach(b =>
         b.addEventListener("click", () => { $("telefono").value = b.dataset.telefono; }));
       // Sugerencias de cuentas destino para la transferencia
@@ -449,6 +611,8 @@
     estado.usuario = null;
     guardarSesionNavegador();
     ocultarAviso();
+    // Si había una confirmación abierta, se cancela
+    if ($("btnCancelar").onclick) $("btnCancelar").onclick();
     $("pantallaCajero").classList.add("oculto");
     $("sesionInfo").classList.remove("visible");
     $("pantallaIngreso").classList.remove("oculto");
@@ -517,6 +681,7 @@
   function pintarUsuario(u) {
     estado.usuario = u;
     $("nombre").textContent = `${u.nombre} ${u.apellido}`;
+    $("inicial").textContent = (u.nombre ?? "?").charAt(0);
     $("telefonoUsuario").textContent = "Tel. " + (u.telefono ?? "");
     $("saldo").textContent = fmt.format(u.saldo);
 
@@ -532,18 +697,48 @@
       RETIRO: "Retiro", CONSIGNACION: "Consignación", TRANSFERENCIA_ENVIADA: "Transferencia enviada",
       TRANSFERENCIA_RECIBIDA: "Transferencia recibida", PAGO_SERVICIO: "Pago de servicio", RECARGA: "Recarga celular"
     };
+    const entradas = ["CONSIGNACION", "TRANSFERENCIA_RECIBIDA"];
+    const meses = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+
+    // Más reciente primero; sin "Ver todo" solo se muestran los últimos
+    const ordenado = [...historial].reverse();
+    const visibles = estado.verTodo ? ordenado : ordenado.slice(0, MOVIMIENTOS_VISIBLES);
+    const saldoMaximo = Math.max(1, ...historial.map(m => m.saldoResultante));
+    $("btnVerTodo").classList.toggle("oculto", historial.length <= MOVIMIENTOS_VISIBLES);
+    $("btnVerTodo").textContent = estado.verTodo ? "Ver menos" : `Ver todo (${historial.length})`;
+
     $("historial").innerHTML = historial.length === 0
-      ? '<tr><td colspan="6" class="vacio">Sin movimientos</td></tr>'
-      : [...historial].reverse().map(m => `
-          <tr>
-            <td>${new Date(m.fecha).toLocaleString("es-CO")}</td>
-            <td>${esc(textoTipo[m.tipo] ?? m.tipo)}</td>
-            <td class="detalle">${esc(m.detalle ?? "")}</td>
-            <td><span class="chip ${esc(m.estado)}">${esc(textoEstado[m.estado] ?? m.estado)}</span></td>
-            <td class="num">${fmt.format(m.monto)}</td>
-            <td class="num">${fmt.format(m.saldoResultante)}</td>
-          </tr>`).join("");
+      ? '<li class="vacio">Sin movimientos todavía</li>'
+      : visibles.map(m => {
+          const f = new Date(m.fecha);
+          const exitosa = m.estado === "EXITOSA";
+          const signo = !exitosa ? "" : entradas.includes(m.tipo) ? "+ " : "− ";
+          const ancho = Math.round(m.saldoResultante / saldoMaximo * 100);
+          return `
+          <li>
+            <div class="fecha" title="${esc(f.toLocaleString("es-CO"))}">
+              <small>${meses[f.getMonth()]}</small><b>${f.getDate()}</b>
+            </div>
+            <div class="movimiento">
+              <div>
+                <div class="tipo">${esc(textoTipo[m.tipo] ?? m.tipo)} · ${f.toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit" })}</div>
+                <div class="monto ${exitosa && entradas.includes(m.tipo) ? "entrada" : ""}">${signo}${fmt.format(m.monto)}</div>
+              </div>
+              <div class="derecha">
+                <span class="chip ${esc(m.estado)}">${esc(textoEstado[m.estado] ?? m.estado)}</span>
+                <span class="saldo-res">Saldo ${fmt.format(m.saldoResultante)}</span>
+              </div>
+              ${m.detalle ? `<div class="detalle">${esc(m.detalle)}</div>` : ""}
+              <div class="barra-saldo" title="Saldo después del movimiento"><div style="width:${ancho}%"></div></div>
+            </div>
+          </li>`;
+        }).join("");
   }
+
+  $("btnVerTodo").addEventListener("click", () => {
+    estado.verTodo = !estado.verTodo;
+    if (estado.usuario) pintarUsuario(estado.usuario);
+  });
 
   async function refrescarCuenta() {
     try {
@@ -632,36 +827,112 @@
     ocultar("mensaje");
   }));
 
+  // Botones "Consignar" / "Retirar" de la tarjeta azul: abren esa operación
+  document.querySelectorAll("[data-ir]").forEach(b => b.addEventListener("click", () => {
+    $("pestanas").querySelector(`[data-op="${b.dataset.ir}"]`).click();
+    const campo = document.querySelector(`.operacion[data-op="${b.dataset.ir}"] input`);
+    $("tarjetaOperaciones").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    campo?.focus({ preventScroll: true });
+  }));
+
   const numero = id => parseFloat($(id).value);
   const enviar = (idForm, accion) => $(idForm).addEventListener("submit", e => { e.preventDefault(); accion(); });
 
+  // ---------- Montos rápidos: SOLO llenan el campo, no ejecutan nada ----------
+  function montosRapidos(idChips, idCampo) {
+    const chips = $(idChips).querySelectorAll("button");
+    const marcar = () => chips.forEach(c => c.classList.toggle("elegido", c.dataset.monto === $(idCampo).value));
+    chips.forEach(b => b.addEventListener("click", () => {
+      $(idCampo).value = b.dataset.monto;
+      marcar();
+      $(idCampo).focus();
+    }));
+    $(idCampo).addEventListener("input", marcar); // si el usuario escribe otro valor, se quita la marca
+  }
+  montosRapidos("montosRapidos", "monto");
+  montosRapidos("recargasRapidas", "montoRecarga");
+
+  // ---------- Ventana de confirmación ----------
+  /**
+   * Muestra el resumen de la operación y espera la decisión del usuario.
+   * @param titulo texto del encabezado, p. ej. "Confirmar retiro"
+   * @param filas  lista de [etiqueta, valor] para el resumen
+   * @returns Promise<boolean> true si confirmó
+   */
+  function confirmar(titulo, filas) {
+    $("tituloConfirmacion").textContent = titulo;
+    $("resumenConfirmacion").innerHTML = filas.map(([etiqueta, valor]) =>
+      `<dt>${esc(etiqueta)}</dt><dd>${esc(valor)}</dd>`).join("");
+    $("ventanaConfirmacion").classList.remove("oculto");
+    $("btnConfirmar").focus();
+    return new Promise(resolver => {
+      const cerrar = respuesta => {
+        $("ventanaConfirmacion").classList.add("oculto");
+        $("btnConfirmar").onclick = $("btnCancelar").onclick = null;
+        document.removeEventListener("keydown", teclas);
+        resolver(respuesta);
+      };
+      const teclas = e => { if (e.key === "Escape") cerrar(false); };
+      $("btnConfirmar").onclick = () => cerrar(true);
+      $("btnCancelar").onclick = () => cerrar(false);
+      document.addEventListener("keydown", teclas);
+    });
+  }
+
+  /** Se confirma primero; solo si el usuario acepta se envía al servidor (y al COBOL). */
+  async function confirmarYOperar(titulo, filas, ruta, body, limpiar) {
+    if (!estado.token || estado.operando) return;
+    if (!await confirmar(titulo, filas)) {
+      mostrar("mensaje", "Operación cancelada. No se hizo ningún cambio.", "info");
+      return;
+    }
+    await operar(ruta, body, limpiar);
+    document.querySelectorAll(".chips button.elegido").forEach(c => c.classList.remove("elegido"));
+  }
+
+  const saldoActual = () => ["Saldo actual", fmt.format(estado.usuario?.saldo ?? 0)];
+  const nombreDe = telefono => {
+    const u = (estado.usuariosDemo ?? []).find(x => x.telefono === telefono);
+    return u ? `${u.nombre} ${u.apellido} (${telefono})` : telefono;
+  };
+
   // 1. Retirar
-  enviar("formRetiro", () => operar("/api/cuenta/retirar", { monto: numero("monto") }, ["monto"]));
-  $("montosRapidos").querySelectorAll("button").forEach(b =>
-    b.addEventListener("click", () => operar("/api/cuenta/retirar", { monto: parseFloat(b.dataset.monto) })));
+  enviar("formRetiro", () => confirmarYOperar("Confirmar retiro",
+    [["Operación", "Retiro en cajero"], ["Monto", fmt.format(numero("monto"))], saldoActual()],
+    "/api/cuenta/retirar", { monto: numero("monto") }, ["monto"]));
 
   // 2. Consignar
-  enviar("formConsignar", () =>
-    operar("/api/cuenta/consignar", { monto: numero("montoConsignar") }, ["montoConsignar"]));
+  enviar("formConsignar", () => confirmarYOperar("Confirmar consignación",
+    [["Operación", "Consignación"], ["Monto", fmt.format(numero("montoConsignar"))], saldoActual()],
+    "/api/cuenta/consignar", { monto: numero("montoConsignar") }, ["montoConsignar"]));
 
   // 3. Transferir
-  enviar("formTransferir", () => operar("/api/cuenta/transferir",
-    { telefonoDestino: $("telefonoDestino").value, monto: numero("montoTransferir") },
-    ["telefonoDestino", "montoTransferir"]));
+  enviar("formTransferir", () => {
+    const telefono = $("telefonoDestino").value.trim();
+    confirmarYOperar("Confirmar transferencia",
+      [["Operación", "Transferencia"], ["Destino", nombreDe(telefono)],
+       ["Monto", fmt.format(numero("montoTransferir"))], saldoActual()],
+      "/api/cuenta/transferir", { telefonoDestino: telefono, monto: numero("montoTransferir") },
+      ["telefonoDestino", "montoTransferir"]);
+  });
 
   // 4. Pagar servicio
-  enviar("formServicio", () => operar("/api/cuenta/pagar-servicio",
-    { servicio: $("servicio").value, referencia: $("referencia").value, valor: numero("valorServicio") },
-    ["referencia", "valorServicio"]));
+  enviar("formServicio", () => {
+    const servicio = $("servicio").options[$("servicio").selectedIndex].text;
+    confirmarYOperar("Confirmar pago de servicio",
+      [["Servicio", servicio], ["Referencia", $("referencia").value.trim()],
+       ["Valor factura", fmt.format(numero("valorServicio"))], ["Comisión", "Fija de $2 (la calcula COBOL)"],
+       saldoActual()],
+      "/api/cuenta/pagar-servicio",
+      { servicio: $("servicio").value, referencia: $("referencia").value, valor: numero("valorServicio") },
+      ["referencia", "valorServicio"]);
+  });
 
   // 5. Recargar celular
-  enviar("formRecarga", () => operar("/api/cuenta/recargar",
-    { celular: $("celular").value, monto: numero("montoRecarga") }, ["montoRecarga"]));
-  $("recargasRapidas").querySelectorAll("button").forEach(b =>
-    b.addEventListener("click", () => {
-      if (!$("celular").reportValidity()) return;
-      operar("/api/cuenta/recargar", { celular: $("celular").value, monto: parseFloat(b.dataset.monto) });
-    }));
+  enviar("formRecarga", () => confirmarYOperar("Confirmar recarga",
+    [["Operación", "Recarga de celular"], ["Celular", $("celular").value.trim()],
+     ["Monto", fmt.format(numero("montoRecarga"))], saldoActual()],
+    "/api/cuenta/recargar", { celular: $("celular").value, monto: numero("montoRecarga") }, ["montoRecarga"]));
 
   // =====================================================================
   // Arranque
